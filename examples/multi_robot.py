@@ -3,14 +3,17 @@ import numpy as np
 from urdfenvs.robots.tiago import TiagoRobot
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 from urdfenvs.robots.prius import Prius
-
+# import sys
+# sys.path.append("/home/josyula/Programs/MAS_Project/gym_envs_urdf/")
+import pybullet
 def run_multi_robot(n_steps=1000, render=False, obstacles=False, goal=False):
     robots = [
         GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"),
+        GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"),
         # GenericUrdfReacher(urdf="ur5.urdf", mode="acc"),
         # GenericUrdfReacher(urdf="ur5.urdf", mode="acc"),
-        TiagoRobot(mode="vel"),
-        Prius(mode="vel")
+        # TiagoRobot(mode="vel"),
+        # Prius(mode="vel")
     ]
 
     env = gym.make(
@@ -32,10 +35,10 @@ def run_multi_robot(n_steps=1000, render=False, obstacles=False, goal=False):
         from examples.scene_objects.goal import dynamicGoal
         env.add_goal(dynamicGoal)
 
-    if obstacles:
-        from examples.scene_objects.obstacles import dynamicSphereObst2
-        env.add_obstacle(dynamicSphereObst2)
-
+    # if obstacles:
+    #     from examples.scene_objects.obstacles import dynamicSphereObst2
+    #     env.add_obstacle(dynamicSphereObst2)
+    pybullet.createVisualShape(pybullet.GEOM_BOX, halfExtents=[0.5, 0.5, 0.5])
     print("Starting episode")
     history = []
     for _ in range(n_steps):
@@ -44,6 +47,7 @@ def run_multi_robot(n_steps=1000, render=False, obstacles=False, goal=False):
     env.close()
     return history
 
+    #add load onto robots
 
 if __name__ == "__main__":
     run_multi_robot(render=True, obstacles=True, goal=True)

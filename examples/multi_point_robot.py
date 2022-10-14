@@ -4,18 +4,18 @@ import numpy as np
 
 def run_point_robot(n_steps=1000, render=True, goal=False, obstacles=False):
     robots = [
-        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
+        GenericUrdfReacher(urdf="multiPointRobot.urdf", mode="vel"),
     ]
     env = gym.make(
         "urdf-env-v0",
         dt=0.01, robots=robots, render=render
     )
-    action = np.array([0.1, 0.0, 1.0])
-    pos0 = np.array([1.0, 0.1, 0.0])
-    vel0 = np.array([1.0, 0.0, 0.0])
+    action = np.array([0.1, 0.0, 1.0, 0.1, 0.0, 1.0])
+    pos0 = np.array([1.0, 0.1, 0.0, 1.5, 0.1, 0.0])
+    vel0 = np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0])
     ob = env.reset(pos=pos0, vel=vel0)
     print(f"Initial observation : {ob}")
-    env.add_walls()
+    # env.add_walls()
     if obstacles:
         from examples.scene_objects.obstacles import (
             sphereObst1,
