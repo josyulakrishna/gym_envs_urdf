@@ -1,6 +1,7 @@
 import gym
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import numpy as np
+from urdfenvs.sensors.lidar import Lidar
 
 def run_point_robot(n_steps=1000, render=True, goal=False, obstacles=False):
     robots = [

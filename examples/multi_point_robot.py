@@ -1,7 +1,7 @@
 import gym
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import numpy as np
-
+from urdfenvs.sensors.lidar import Lidar
 def run_point_robot(n_steps=1000, render=True, goal=False, obstacles=False):
     robots = [
         GenericUrdfReacher(urdf="multiPointRobot.urdf", mode="vel"),
@@ -13,9 +13,14 @@ def run_point_robot(n_steps=1000, render=True, goal=False, obstacles=False):
     action = np.array([0.1, 0.0, 1.0, 0.1, 0.0, 1.0])
     pos0 = np.array([1.0, 0.1, 0.0, 1.5, 0.1, 0.0])
     vel0 = np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0])
+    lidar = Lidar(4, nb_rays=4, raw_data=False)
     ob = env.reset(pos=pos0, vel=vel0)
-    print(f"Initial observation : {ob}")
-    # env.add_walls()
+    env.add_sensor(lidar, robot_ids=[0, 1])
+
+    # print(f"Initial observation : {ob['robot_0']['lidarSensor']}")
+    print(ob['robot_0']['lidarSensor'])
+    env.add_walls()
+
     if obstacles:
         from examples.scene_objects.obstacles import (
             sphereObst1,

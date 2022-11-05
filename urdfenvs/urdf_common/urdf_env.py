@@ -9,6 +9,39 @@ from urdfenvs.urdf_common.plane import Plane
 from urdfenvs.sensors.sensor import Sensor
 from urdfenvs.urdf_common.generic_robot import GenericRobot
 
+from malib.utils.episode import Episode
+
+from MotionPlanningEnv.urdfObstacle import UrdfObstacle
+from MotionPlanningGoal.staticSubGoal import StaticSubGoal
+from urdfenvs.sensors.lidar import Lidar
+import os
+
+lidar = Lidar(4, nb_rays=4, raw_data=False)
+
+goalDict = { "type": "static",
+            "desired_position": [3, 0.0, 0],
+            "is_primary_goal": True,
+            "indices": [0, 1, 2],
+            "parent_link": 0,
+            "child_link": 3,
+            "epsilon": 0.2,
+            "type": "staticSubGoal",
+             }
+goal = StaticSubGoal(name="goal", content_dict=goalDict)
+
+def create_obstacle():
+    """
+    You can place any arbitrary urdf file in here.
+    The physics of this box is not perfect, but this is not the field of
+    my expertise.
+    """
+    urdf_obstacle_dict = {
+        "type": "urdf",
+        "geometry": {"position": [0.2, -0.0, 1.05]},
+        "urdf": "/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/block.urdf",
+    }
+    urdf_obstacle = UrdfObstacle(name="carry_object", content_dict=urdf_obstacle_dict)
+    return urdf_obstacle
 
 class WrongObservationError(Exception):
     """Exception when observation lays outside the defined observation space.
@@ -166,7 +199,7 @@ class UrdfEnv(gym.Env):
     ) -> None:
         """Constructor for environment.
 
-        Variables are set and the pyhsics engine is initiated. Either with
+  agent      Variables are set and the pyhsics engine is initiated. Either with
         rendering (p.GUI) or without (p.DIRECT). Note that rendering slows
         down the simulation.
 
@@ -192,6 +225,27 @@ class UrdfEnv(gym.Env):
             p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
         else:
             self._cid = p.connect(p.DIRECT)
+
+    def add_stuff(self):
+        self.add_obstacle(create_obstacle())
+        self.add_goal(goal)
+        self.add_sensor(lidar, robot_ids=[0,1])
+        self.add_walls()
+    def action_spaces(self):
+        return np.zeros((3, ))
+    def observation_spaces(self):
+        observations = np.zeros(((8+6)*len(self._robots)),)
+        return observations
+    def possible_agents(self):
+        return list(self.action_space.keys())
+    def time_step(self, actions):
+        observations, rewards, dones, infos = self.step(actions)
+        return {
+            Episode.NEXT_OBS: observations,
+            Episode.REWARD: rewards,
+            Episode.DONE: dones,
+            Episode.INFO: infos,
+        }
 
     def n(self) -> int:
         return sum([robot.n() for robot in self._robots])
@@ -233,11 +287,39 @@ class UrdfEnv(gym.Env):
             goal.update_bullet_position(p, t=self.t())
         p.stepSimulation(self._cid)
         ob = self._get_ob()
+        reward = -0.1 # running reward -0.1
+        robot_positions = np.zeros((len(self._robots), 3))
+        for i,key in enumerate(ob.keys()):
+            #get robot position
+            robot_positions[i,:] = ob[key]['joint_state']['position']
+        robot_centroid = robot_positions.mean(axis=0)
+        goal_position = goal.position() if len(self._goals) > 0 else np.zeros(3)
 
-        reward = 1.0
+        #check if goal is reached
+        if np.linalg.norm(robot_centroid - goal_position) < 0.1:
+            self._done = True
+            reward = 400.0
+
+        #collision check with plane and obstacle
+        #p.getBodyInfo(bodyUniqueId) to see objects
+        # robots = [0,1] body ids
+        # plane = 2 body id
+        # load = 3 body id
+        #collision between load and plane
+        if p.getClosestPoints(3, 2, 0.2):
+            self._done = True
+            reward = -100.0
+            # print("collision with plane")
+        #collision between robot and wall
+        for i in range(4,p.getNumBodies()):
+            if p.getClosestPoints(0, i, 0.1) or p.getClosestPoints(1, i, 0.1):
+                self._done = True
+                reward = -100.0
+                # print("collision with wall")
 
         if self._render:
             self.render()
+
         return ob, reward, self._done, {}
 
     def _get_ob(self) -> dict:
@@ -489,3 +571,4 @@ class UrdfEnv(gym.Env):
 
     def close(self) -> None:
         p.disconnect(self._cid)
+
