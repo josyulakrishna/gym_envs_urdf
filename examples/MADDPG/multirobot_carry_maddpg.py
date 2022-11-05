@@ -17,7 +17,7 @@ import gym
 parser = argparse.ArgumentParser(description='Multirobotcarry MADDPG Args')
 parser.add_argument('--scenario', type=str, default='urdf', help='name of the scenario script')
 parser.add_argument('--num_episodes', type=int, default=60000, help='number of episodes for training')
-parser.add_argument('--max_episode_len', type=int, default=25, help='maximum episode length')
+parser.add_argument('--max_episode_len', type=int, default=1000, help='maximum episode length')
 parser.add_argument('--policy_lr', type=float, default=0.01, help='learning rate for policies')
 parser.add_argument('--critic_lr', type=float, default=0.01, help='learning rate for critics')
 parser.add_argument('--alpha', type=float, default=0.0, help='policy entropy term coefficient')
