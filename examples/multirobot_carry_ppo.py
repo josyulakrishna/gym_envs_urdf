@@ -11,7 +11,7 @@ import gym
 from PPO import PPO
 from datetime import datetime
 import torch
-
+# https://github.com/nikhilbarhate99/PPO-PyTorch
 def flatten_observation(observation_dictonary: dict) -> np.ndarray:
     observation_list = []
     for val in observation_dictonary.values():

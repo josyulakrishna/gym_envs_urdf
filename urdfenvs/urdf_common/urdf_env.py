@@ -220,6 +220,7 @@ class UrdfEnv(gym.Env):
         self._goals: list = []
         self._flatten_observation: bool = flatten_observation
         self._space_set = False
+        self.n_ = len(robots)
         if self._render:
             self._cid = p.connect(p.GUI)
             p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
@@ -231,11 +232,17 @@ class UrdfEnv(gym.Env):
         self.add_goal(goal)
         self.add_sensor(lidar, robot_ids=[0,1])
         self.add_walls()
-    def action_spaces(self):
+    def action_spaces_ppo(self):
         return np.zeros((3, ))
-    def observation_spaces(self):
+    def observation_spaces_ppo(self):
         observations = np.zeros(((8+6)*len(self._robots)),)
         return observations
+    def action_spaces_mappo(self):
+        return np.zeros((len(self._robots), 2))
+    def observation_spaces_mappo(self):
+        observations = np.zeros((len(self._robots), (8+6)))
+        return observations
+
     def possible_agents(self):
         return list(self.action_space.keys())
     def time_step(self, actions):
@@ -320,7 +327,7 @@ class UrdfEnv(gym.Env):
         if self._render:
             self.render()
 
-        return ob, reward, self._done, {}
+        return ob, [reward]*self.n_, self._done, {}
 
     def _get_ob(self) -> dict:
         """Compose the observation."""
@@ -567,7 +574,9 @@ class UrdfEnv(gym.Env):
         the simulation when rendering is not desired.
 
         """
-        time.sleep(self.dt())
+        self._cid = p.connect(p.GUI)
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
+        # time.sleep(self.dt())
 
     def close(self) -> None:
         p.disconnect(self._cid)
