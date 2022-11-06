@@ -1,4 +1,6 @@
-import numpy as np 
+from copy import deepcopy
+
+import numpy as np
 import random
 import torch
 import os
@@ -82,15 +84,17 @@ class AgentTrainer(object):
         all_a[:,self.index] = a
         all_a = torch.reshape(all_a, (batch_size, -1))
         q_p = self.critic(obs_batch, all_a)
-        policy_loss = (self.alpha * log_p - q_p).mean()
+
+        policy_loss = (self.alpha * log_p - q_p.clone()).mean()
+        self.policy_optim.zero_grad()
+        policy_loss.backward(retain_graph=True)
+        self.policy_optim.step()
 
         self.critic_optim.zero_grad()
         q_loss.backward()
         self.critic_optim.step()
 
-        self.policy_optim.zero_grad()
-        policy_loss.backward()
-        self.policy_optim.step()
+        # with torch.autograd.detect_anomaly():
 
         if updates % self.target_update_interval == 0:
             soft_update(self.critic_target, self.critic, self.tau)

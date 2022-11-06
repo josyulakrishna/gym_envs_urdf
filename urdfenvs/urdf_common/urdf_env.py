@@ -147,6 +147,7 @@ class WrongObservationError(Exception):
                 msg_ext += f"{tabbing}\t{key}[{i}]: {val} > {os_box.high[i]}\n"
         return msg_ext
 
+
 def flatten_observation(observation_dictonary: dict) -> np.ndarray:
     observation_list = []
     for val in observation_dictonary.values():
@@ -245,14 +246,6 @@ class UrdfEnv(gym.Env):
 
     def possible_agents(self):
         return list(self.action_space.keys())
-    def time_step(self, actions):
-        observations, rewards, dones, infos = self.step(actions)
-        return {
-            Episode.NEXT_OBS: observations,
-            Episode.REWARD: rewards,
-            Episode.DONE: dones,
-            Episode.INFO: infos,
-        }
 
     def n(self) -> int:
         return sum([robot.n() for robot in self._robots])

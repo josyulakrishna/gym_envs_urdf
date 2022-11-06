@@ -103,11 +103,11 @@ for i_episode in itertools.count(1):
 
     while not done:
         # TODO: substitute the actions with random ones when starts up
-        action_list = np.array([np.append(agent.act(np.expand_dims(obs, axis=0)),0) for agent, obs in zip(trainers, obs_list)])
-        action_list = action_list.ravel()
-
+        action_list = np.array([agent.act(np.expand_dims(obs, axis=0)) for agent, obs in zip(trainers, obs_list)])
+        # action_list = action_list.ravel()
+        action_act = np.hstack((deepcopy(action_list), np.zeros((action_list.shape[0],1)))).ravel()
         # interact with the environment
-        new_obs_list, reward_list, done_list, _ = env.step(deepcopy(action_list))
+        new_obs_list, reward_list, done_list, _ = env.step(deepcopy(action_act))
         new_obs_list = flatten_observation(new_obs_list)
         new_obs_list = new_obs_list.reshape(env.n_, 14)
 
