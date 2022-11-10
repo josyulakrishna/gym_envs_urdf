@@ -234,9 +234,9 @@ class UrdfEnv(gym.Env):
         self.add_sensor(lidar, robot_ids=[0,1])
         self.add_walls()
     def action_spaces_ppo(self):
-        return np.zeros((3, ))
+        return np.zeros((2, ))
     def observation_spaces_ppo(self):
-        observations = np.zeros(((8+6)*len(self._robots)),)
+        observations = np.zeros((8+6+3,))
         return observations
     def action_spaces_mappo(self):
         return np.zeros((len(self._robots), 2))
@@ -567,10 +567,10 @@ class UrdfEnv(gym.Env):
         the simulation when rendering is not desired.
 
         """
-        self._cid = p.connect(p.GUI)
-        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
+        # self._cid = p.connect(p.GUI)
+        # p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
         # time.sleep(self.dt())
-
+        pass
     def close(self) -> None:
         p.disconnect(self._cid)
 

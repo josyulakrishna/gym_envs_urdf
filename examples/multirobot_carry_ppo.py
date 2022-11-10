@@ -13,6 +13,7 @@ from datetime import datetime
 import torch
 # https://github.com/nikhilbarhate99/PPO-PyTorch
 def flatten_observation(observation_dictonary: dict) -> np.ndarray:
+
     observation_list = []
     for val in observation_dictonary.values():
         if isinstance(val, np.ndarray):
@@ -86,11 +87,11 @@ def train(render=False):
     print("training environment name : " + env_name)
 
     # state space dimension
-    state_dim = env.observation_spaces().shape[0]
+    state_dim = env.observation_spaces_ppo().shape[0]
 
     # action space dimension
     if has_continuous_action_space:
-        action_dim = env.action_spaces().shape[0]-1
+        action_dim = env.action_spaces_ppo().shape[0]
     else:
         action_dim = env.action_space.n
 
@@ -197,28 +198,31 @@ def train(render=False):
     while time_step <= max_training_timesteps:
 
         state = env.reset(base_pos=base_pos)
-        state = flatten_observation(state)
+        state_0 = np.append(flatten_observation(state['robot_0']), state['robot_1']['joint_state']["position"])
+        state_1 = np.append(flatten_observation(state['robot_1']), state['robot_0']['joint_state']["position"])
         current_ep_reward = 0
 
         for t in range(1, max_ep_len + 1):
 
             # select action with policy
-            action1 = ppo_agent_1.select_action(state)
-            action2 = ppo_agent_2.select_action(state)
-            actions = np.append(action1, np.zeros(1), action2, np.zeros(1))
+            action1 = ppo_agent_1.select_action(state_0)
+            action2 = ppo_agent_2.select_action(state_1)
+            actions = np.concatenate((action1, np.zeros(1), action2, np.zeros(1)))
             state, reward, done, _ = env.step(actions)
-            state = flatten_observation(state)
+
+            state_0 = np.append(flatten_observation(state['robot_0']), state['robot_1']['joint_state']["position"])
+            state_1 = np.append(flatten_observation(state['robot_1']), state['robot_0']['joint_state']["position"])
 
             # saving reward and is_terminals
-            ppo_agent_1.buffer.rewards.append(reward)
+            ppo_agent_1.buffer.rewards.append(reward[0])
             ppo_agent_1.buffer.is_terminals.append(done)
 
-            ppo_agent_2.buffer.rewards.append(reward)
+            ppo_agent_2.buffer.rewards.append(reward[0])
             ppo_agent_2.buffer.is_terminals.append(done)
 
 
             time_step += 1
-            current_ep_reward += reward
+            current_ep_reward += reward[0]
 
             # update PPO agent
             if time_step % update_timestep == 0:

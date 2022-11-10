@@ -40,7 +40,7 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     ]
     env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
     # Choosing arbitrary actions
-    action = [0.2, 0.0, 0.0, 0.2, -0.5, 0.0]
+    action = [0.1, -0.1, 0.0, 0.1, -0.1, 0.0]
     base_pos = np.array(
         [
             [0.0, 1.0, 0.0],
@@ -49,18 +49,18 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     )
     ob = env.reset(base_pos=base_pos)
     # Placing the obstacle
-    env.add_obstacle(create_obstacle())
-    env.add_goal(goal)
-    lidar = Lidar(4, nb_rays=4, raw_data=False)
-    env.add_sensor(lidar, robot_ids=[0, 1])
-    env.add_walls()
-
+    # env.add_obstacle(create_obstacle())
+    # env.add_goal(goal)
+    # lidar = Lidar(4, nb_rays=4, raw_data=False)
+    # env.add_sensor(lidar, robot_ids=[0, 1])
+    # env.add_walls()
+    env.add_stuff()
     history = []
     for _ in range(n_steps):
         # WARNING: The reward function is not defined for you case.
         # You will have to do this yourself.
         ob, reward, done, info = env.step(action)
-        print(done)
+        print(ob)
         history.append(ob)
     env.close()
     return history
