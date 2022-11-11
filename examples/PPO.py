@@ -47,10 +47,10 @@ class ActorCritic(nn.Module):
         if has_continuous_action_space:
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, 64),
-                nn.Tanh(),
+                nn.ReLU(),
                 nn.Linear(64, 64),
-                nn.Tanh(),
-                nn.Linear(64, action_dim),
+                nn.ReLU(),
+                nn.Softmax(64, action_dim),
             )
         else:
             self.actor = nn.Sequential(
@@ -59,14 +59,14 @@ class ActorCritic(nn.Module):
                 nn.Linear(64, 64),
                 nn.Tanh(),
                 nn.Linear(64, action_dim),
-                nn.Softmax(dim=-1)
+                nn.Sigmoid(dim=-1)
             )
         # critic
         self.critic = nn.Sequential(
             nn.Linear(state_dim, 64),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(64, 64),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(64, 1)
         )
 
