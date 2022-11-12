@@ -50,7 +50,8 @@ class ActorCritic(nn.Module):
                 nn.ReLU(),
                 nn.Linear(64, 64),
                 nn.ReLU(),
-                nn.Softmax(64, action_dim),
+                nn.Linear(64, action_dim),
+                nn.Tanh()
             )
         else:
             self.actor = nn.Sequential(

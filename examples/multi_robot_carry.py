@@ -38,9 +38,9 @@ def run_multi_robot_carry(n_steps=1000, render=False):
         GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
         GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
     ]
-    env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
+    env = gym.make("urdf-env-v0", dt=0.1, robots=robots, render=render)
     # Choosing arbitrary actions
-    action = [0.1, -0.1, 0.0, 0.1, -0.1, 0.0]
+    action = [0.1, 0., 0.0, 0.1, 0., 0.0]
     base_pos = np.array(
         [
             [0.0, 1.0, 0.0],
@@ -56,11 +56,15 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     # env.add_walls()
     env.add_stuff()
     history = []
+    i = 0
     for _ in range(n_steps):
+        i += 1
         # WARNING: The reward function is not defined for you case.
         # You will have to do this yourself.
         ob, reward, done, info = env.step(action)
-        print(ob)
+        print("i", i, done)
+        if done:
+            break
         history.append(ob)
     env.close()
     return history

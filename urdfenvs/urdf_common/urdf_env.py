@@ -287,9 +287,9 @@ class UrdfEnv(gym.Env):
             goal.update_bullet_position(p, t=self.t())
         p.stepSimulation(self._cid)
         ob = self._get_ob()
-        reward = -0.1 # running reward -0.1
+        rewards = [-0.1, -0.1] # running reward -0.1
         robot_positions = np.zeros((len(self._robots), 3))
-        for i,key in enumerate(ob.keys()):
+        for i, key in enumerate(ob.keys()):
             #get robot position
             robot_positions[i,:] = ob[key]['joint_state']['position']
         robot_centroid = robot_positions.mean(axis=0)
@@ -297,30 +297,33 @@ class UrdfEnv(gym.Env):
 
         #check if goal is reached
         if np.linalg.norm(robot_centroid - goal_position) < 0.1:
+            rewards = [400.0, 400.0]
             self._done = True
-            reward = 400.0
 
         #collision check with plane and obstacle
         #p.getBodyInfo(bodyUniqueId) to see objects
         # robots = [0,1] body ids
         # plane = 2 body id
         # load = 3 body id
-        #collision between load and plane
+        #collision between load and plane/floor
         if p.getClosestPoints(3, 2, 0.2):
+            rewards = [-100.0, -100.0]
             self._done = True
-            reward = -100.0
             # print("collision with plane")
         #collision between robot and wall
         for i in range(4,p.getNumBodies()):
-            if p.getClosestPoints(0, i, 0.1) or p.getClosestPoints(1, i, 0.1):
+            if p.getClosestPoints(0, i, 0.1):
+                rewards[0] = -100.0
                 self._done = True
-                reward = -100.0
+            if p.getClosestPoints(1, i, 0.1):
+                rewards[1] = -100.0
+                self._done = True
                 # print("collision with wall")
 
         if self._render:
             self.render()
 
-        return ob, [reward]*self.n_, self._done, {}
+        return ob, rewards, self._done, {}
 
     def _get_ob(self) -> dict:
         """Compose the observation."""
