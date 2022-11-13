@@ -27,9 +27,8 @@ def run_multi_robot(n_steps=1000, render=False, obstacles=False, goal=False):
     base_pos = np.array([
         [0.0, 1.0, 0.0],
         [0.0, -1.0, 0.0],
-        [0.0, -2.0, 0.0]
         ])
-    ob = env.reset(pos=pos0, base_pos=base_pos)
+    ob = env.reset(mount_positions=base_pos)
     print(f"Initial observation : {ob}")
     if goal:
         from examples.scene_objects.goal import dynamicGoal
@@ -41,9 +40,13 @@ def run_multi_robot(n_steps=1000, render=False, obstacles=False, goal=False):
     pybullet.createVisualShape(pybullet.GEOM_BOX, halfExtents=[0.5, 0.5, 0.5])
     print("Starting episode")
     history = []
-    for _ in range(n_steps):
+    i=0
+    for _ in range(1000):
         ob, _, _, _ = env.step(action)
         history.append(ob)
+        i+=1
+        if i%100==0:
+            env.reset(mount_positions=base_pos)
     env.close()
     return history
 

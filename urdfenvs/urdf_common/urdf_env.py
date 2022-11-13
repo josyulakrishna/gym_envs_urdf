@@ -37,7 +37,7 @@ def create_obstacle():
     """
     urdf_obstacle_dict = {
         "type": "urdf",
-        "geometry": {"position": [0.2, -0.0, 1.05]},
+        "geometry": {"position": [0.0, -0.0, 0.5]},
         "urdf": "/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/block.urdf",
     }
     urdf_obstacle = UrdfObstacle(name="carry_object", content_dict=urdf_obstacle_dict)
@@ -325,6 +325,9 @@ class UrdfEnv(gym.Env):
 
         return ob, rewards, self._done, {}
 
+    def get_observation(self):
+        return self._get_ob()
+
     def _get_ob(self) -> dict:
         """Compose the observation."""
         observation = {}
@@ -560,6 +563,7 @@ class UrdfEnv(gym.Env):
         self.plane = Plane()
         p.setGravity(0, 0, -10.0)
         p.stepSimulation()
+        p.resetDebugVisualizerCamera(cameraDistance=5, cameraYaw=-35, cameraPitch=50, cameraTargetPosition=[1, 1, 1])
         return self._get_ob()
 
     def render(self) -> None:

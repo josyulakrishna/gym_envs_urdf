@@ -1,6 +1,8 @@
 import sys
 import os
 import numpy as np
+import wandb
+
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 from MotionPlanningEnv.urdfObstacle import UrdfObstacle
 from MotionPlanningGoal.staticSubGoal import StaticSubGoal
@@ -11,7 +13,32 @@ import gym
 from PPO2 import PPO
 from datetime import datetime
 import torch
+from tracker import WandBTracker
+
 # https://github.com/nikhilbarhate99/PPO-PyTorch
+
+
+def make_env(render=False):
+    robots = [
+        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
+        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
+    ]
+    env = gym.make("urdf-env-v0", dt=0.1, robots=robots, render=render)
+    # Choosing arbitrary actions
+    base_pos = np.array(
+        [
+            [0.0, 1.0, 0.0],
+            [0.0, -1.0, 0.0],
+        ]
+    )
+    env.reset(base_pos=base_pos)
+    env.add_stuff()
+    ob = env.get_observation()
+    return env, ob
+def kill_env(env):
+    env.close()
+    del env
+
 def flatten_observation(observation_dictonary: dict) -> np.ndarray:
 
     observation_list = []
@@ -27,22 +54,7 @@ def flatten_observation(observation_dictonary: dict) -> np.ndarray:
 
 def train(render=False):
     # Two robots to carry the load
-    robots = [
-        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
-        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
-    ]
-    env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render, flatten_observation=False)
-    # # Choosing arbitrary actions
-    # action = [0.2, 0.0, 0.0, 0.2, -0.5, 0.0]
-    base_pos = np.array(
-        [
-            [0.0, 1.0, 0.0],
-            [0.0, -1.0, 0.0],
-        ]
-    )
-
-    env.reset(base_pos=base_pos)
-    env.add_stuff()
+    env,_ = make_env(render=render)
     # history = []
     # for _ in range(n_steps):
     #     # WARNING: The reward function is not defined for you case.
@@ -56,7 +68,7 @@ def train(render=False):
 
     has_continuous_action_space = True  # continuous action space; else discrete
 
-    max_ep_len = 10000                   # max timesteps in one episode
+    max_ep_len = 1000                   # max timesteps in one episode
     max_training_timesteps = int(3e6)   # break training loop if timeteps > max_training_timesteps
 
     print_freq = max_ep_len * 10        # print avg reward in the interval (in num timesteps)
@@ -72,7 +84,7 @@ def train(render=False):
     ## Note : print/log frequencies should be > than max_ep_len
 
     ################ PPO hyperparameters ################
-    update_timestep = 4 #max_ep_len * 4      # update policy every n timesteps
+    update_timestep = max_ep_len/4 # update policy every n timesteps
     K_epochs = 80               # update policy for K epochs in one PPO update
 
     eps_clip = 0.2          # clip parameter for PPO
@@ -81,11 +93,32 @@ def train(render=False):
     lr_actor = 0.0003       # learning rate for actor network
     lr_critic = 0.001       # learning rate for critic network
 
-    random_seed = 0         # set random seed if required (0 = no random seed)
+    random_seed = 42        # set random seed if required (0 = no random seed)
     #####################################################
-
+    wandb.init(project="ppo_dec_multirobot_carry",
+    config=
+        {
+            "env_name": env_name,
+            "has_continuous_action_space": has_continuous_action_space,
+            "max_ep_len": max_ep_len,
+            "max_training_timesteps": max_training_timesteps,
+            "print_freq": print_freq,
+            "log_freq": log_freq,
+            "save_model_freq": save_model_freq,
+            "action_std": action_std,
+            "action_std_decay_rate": action_std_decay_rate,
+            "min_action_std": min_action_std,
+            "action_std_decay_freq": action_std_decay_freq,
+            "update_timestep": update_timestep,
+            "K_epochs": K_epochs,
+            "eps_clip": eps_clip,
+            "gamma": gamma,
+            "lr_actor": lr_actor,
+            "lr_critic": lr_critic,
+            "random_seed": random_seed,
+        }
+    )
     print("training environment name : " + env_name)
-
     # state space dimension
     state_dim = env.observation_spaces_ppo().shape[0]
 
@@ -196,8 +229,8 @@ def train(render=False):
 
     # training loop
     while time_step <= max_training_timesteps:
-
-        state = env.reset(base_pos=base_pos)
+        kill_env(env)
+        env, state = make_env(render=False)
         state_0 = np.append(flatten_observation(state['robot_0']), state['robot_1']['joint_state']["position"])
         state_1 = np.append(flatten_observation(state['robot_1']), state['robot_0']['joint_state']["position"])
         current_ep_reward = 0
@@ -222,7 +255,7 @@ def train(render=False):
 
 
             time_step += 1
-            current_ep_reward += reward[0]
+            current_ep_reward = reward[0]+reward[1]
 
             # update PPO agent
             if time_step % update_timestep == 0:
@@ -242,7 +275,7 @@ def train(render=False):
 
                 log_f.write('{},{},{}\n'.format(i_episode, time_step, log_avg_reward))
                 log_f.flush()
-
+                wandb.log({'log_avg_reward': log_avg_reward, 'time_step': time_step, 'i_episode': i_episode})
                 log_running_reward = 0
                 log_running_episodes = 0
 
@@ -252,9 +285,8 @@ def train(render=False):
                 print_avg_reward = print_running_reward / print_running_episodes
                 print_avg_reward = round(print_avg_reward, 2)
 
-                print("Episode : {} \t\t Timestep : {} \t\t Average Reward : {}".format(i_episode, time_step,
-                                                                                        print_avg_reward))
-
+                print("Episode : {} \t\t Timestep : {} \t\t Average Reward : {}".format(i_episode, time_step,print_avg_reward))
+                wandb.log({'episode': i_episode, 'time_step': time_step, 'avg_reward': print_avg_reward})
                 print_running_reward = 0
                 print_running_episodes = 0
 
@@ -262,8 +294,8 @@ def train(render=False):
             if time_step % save_model_freq == 0:
                 print("--------------------------------------------------------------------------------------------")
                 print("saving model at : " + checkpoint_path)
-                ppo_agent_1.save(checkpoint_path)
-                ppo_agent_2.save(checkpoint_path)
+                ppo_agent_1.save(checkpoint_path+'_1')
+                ppo_agent_2.save(checkpoint_path+'_2')
                 print("model saved")
                 print("Elapsed Time  : ", datetime.now().replace(microsecond=0) - start_time)
                 print("--------------------------------------------------------------------------------------------")
@@ -281,8 +313,7 @@ def train(render=False):
         i_episode += 1
 
     log_f.close()
-    env.close()
-
+    kill_env(env)
     # print total training time
     print("============================================================================================")
     end_time = datetime.now().replace(microsecond=0)
