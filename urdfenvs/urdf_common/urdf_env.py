@@ -238,9 +238,9 @@ class UrdfEnv(gym.Env):
     def observation_spaces_ppo(self):
         observations = np.zeros((8+6+3,))
         return observations
-    def action_spaces_mappo(self):
+    def action_spaces_maddpg(self):
         return np.zeros((len(self._robots), 2))
-    def observation_spaces_mappo(self):
+    def observation_spaces_maddpg(self):
         observations = np.zeros((len(self._robots), (8+6)))
         return observations
 
@@ -296,7 +296,7 @@ class UrdfEnv(gym.Env):
         goal_position = goal.position() if len(self._goals) > 0 else np.zeros(3)
 
         #check if goal is reached
-        if np.linalg.norm(robot_centroid - goal_position) < 0.1:
+        if np.linalg.norm(robot_centroid - goal_position) < 0.5:
             rewards = [400.0, 400.0]
             self._done = True
 
@@ -310,6 +310,8 @@ class UrdfEnv(gym.Env):
             rewards = [-100.0, -100.0]
             self._done = True
             # print("collision with plane")
+        # p.getNumBodies()
+        # p.getBodyInfo()
         #collision between robot and wall
         for i in range(4,p.getNumBodies()):
             if p.getClosestPoints(0, i, 0.1):

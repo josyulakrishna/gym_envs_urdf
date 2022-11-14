@@ -78,7 +78,7 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     i = 0
     done = False
     env, ob = make_env(render=render)
-    action = [0.1, 0., 0.0, 0.1, 0., 0.0]
+    action = [-0.1, 0.1, 0.0, -0.1, 0.1, 0.0]
 
     for _ in range(n_steps):
         i += 1
