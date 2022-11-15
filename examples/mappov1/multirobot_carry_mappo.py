@@ -8,6 +8,8 @@ import torch
 import gym
 import os
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
+import wandb
+wandb.init(project="multirobot_carry_mappo", entity="josyula")
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -181,7 +183,7 @@ def create_trainer(env, agents, save_dir, update_frequency=5000,
     return trainer
 
 
-def train_agents(env, trainer, n_episodes=8000, target_score=0.5,
+def train_agents(env, trainer, n_episodes=8000, target_score=100,
                  score_window_size=100):
     """
     This function carries out the training process with specified trainer.
@@ -211,6 +213,9 @@ def train_agents(env, trainer, n_episodes=8000, target_score=0.5,
         mean_reward = np.max(
             trainer.score_history[-score_window_size:], axis=1
         ).mean()
+        if i_episode % 10000 == 0:
+            trainer.print_status()
+            trainer.save()
         if mean_reward >= target_score:
             print('Environment is solved.')
             env.close()
@@ -230,6 +235,11 @@ if __name__ == '__main__':
 
     # Create MAPPOTrainer object to train agents.
     save_dir = os.path.join(os.getcwd(), r'saved_files')
-    trainer = create_trainer(env, agents, save_dir, update_frequency=1000, max_eps_length=1000)
+    trainer = create_trainer(env, agents, save_dir, update_frequency=1000, max_eps_length=500)
     # Train agent in specified environment.
+    # train_agents(env, trainer)
+    paths= ["/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/mappov1/saved_files/agent_0_episode_634.pth",
+            "/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/mappov1/saved_files/agent_1_episode_634.pth"]
     train_agents(env, trainer)
+
+    # trainer.load_state(paths)

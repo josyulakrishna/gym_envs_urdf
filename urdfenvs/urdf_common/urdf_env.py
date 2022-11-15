@@ -273,7 +273,8 @@ class UrdfEnv(gym.Env):
     def step(self, actions):
         self._t += self.dt()
         # Feed action to the robot and get observation of robot's state
-
+        info = {}
+        info['goal_reached'] = False
         action_id = 0
         for robot in self._robots:
             action = actions[action_id:action_id+robot.n()]
@@ -299,7 +300,7 @@ class UrdfEnv(gym.Env):
         if np.linalg.norm(robot_centroid - goal_position) < 0.5:
             rewards = [400.0, 400.0]
             self._done = True
-
+            info['goal_reached'] = True
         #collision check with plane and obstacle
         #p.getBodyInfo(bodyUniqueId) to see objects
         # robots = [0,1] body ids
@@ -325,7 +326,7 @@ class UrdfEnv(gym.Env):
         if self._render:
             self.render()
 
-        return ob, rewards, self._done, {}
+        return ob, rewards, self._done, info
 
     def get_observation(self):
         return self._get_ob()

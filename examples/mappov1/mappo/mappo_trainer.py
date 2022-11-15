@@ -6,6 +6,8 @@ import time
 import os
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import gym
+import wandb
+
 plt.style.use('dark_background')
 
 def flatten_observation(observation_dictonary: dict) -> np.ndarray:
@@ -216,6 +218,7 @@ class MAPPOTrainer:
             f'Mean Total Reward: {mean_reward.sum():.2f}, '
             f'Mean Episode Length {mean_eps_len:.1f}'
         )
+        wandb.log({"Mean Max Reward": max_mean, "Mean Total Reward": mean_reward.sum(), "Mean Episode Length": mean_eps_len})
 
     def plot(self):
         """
@@ -245,3 +248,9 @@ class MAPPOTrainer:
         filename = f'scores_{self.i_episode}'
         fig.savefig(os.path.join(self.save_dir, filename))
         plt.show()
+        # tbl = wandb.Table(dataframe=df)
+        # wandb.log({"episode-vs-scores": wandb.plot.line(tbl, "Max", title="Episode vs Scores")})
+
+    def load_state(self, paths):
+        self.agents[0].actor_critic.load_state_dict(torch.load(paths[0]))
+        self.agents[1].actor_critic.load_state_dict(torch.load(paths[1]))
