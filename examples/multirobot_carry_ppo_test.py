@@ -14,7 +14,9 @@ from PPO2 import PPO
 from datetime import datetime
 import torch
 from tracker import WandBTracker
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
 
+import pybullet as p
 # https://github.com/nikhilbarhate99/PPO-PyTorch
 
 
@@ -23,7 +25,7 @@ def make_env(render=False):
         GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
         GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
     ]
-    env = gym.make("urdf-env-v0", dt=0.1, robots=robots, render=render)
+    env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
     # Choosing arbitrary actions
     base_pos = np.array(
         [
@@ -172,12 +174,17 @@ def test(render=False):
     done = False
     kill_env(env)
     env, state = make_env(render=True)
+    p.startStateLogging(p.STATE_LOGGING_VIDEO_MP4, "/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/video.mp4")
+
+    # video_path = "/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/1.mp4"
+    # video_recorder = VideoRecorder(env, video_path, enabled=video_path is not None)
 
     state = flatten_observation(state)
     current_ep_reward = 0
     action_prev = np.zeros((6,))
     alpha=0.5
     while not done:
+
         # select action with policy
         action = ppo_agent.select_action(state)
         actions = np.clip(np.hstack((action.reshape(2, 2), np.zeros((2, 1)))).ravel(), -0.5, 0.5)
@@ -187,7 +194,12 @@ def test(render=False):
         state = flatten_observation(state)
         time_step += 1
         current_ep_reward = reward[0] + reward[1]
+        # video_recorder.capture_frame()
         print(info['goal_reached'])
+    # video_recorder.close()
+    # video_recorder.enabled = False
+    p.stopStateLogging(p.STATE_LOGGING_VIDEO_MP4)
+    kill_env(env)
 
 if __name__ == '__main__':
     test()

@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import torch
-
+import numpy as np
 
 class Memory:
     """Memory object which stores past data for experiential learning."""
@@ -149,6 +149,9 @@ class PPOAgent:
 
         # Compute advantages and consequent surrogate losses.
         advantages = (rewards - state_values.detach()).clone()
+        ## added advantage normalization
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-5)
+        ##############################
         surr1 = ratios * advantages
         surr2 = torch.clamp(ratios, 1 - self.eps_clip,
                             1 + self.eps_clip) * advantages

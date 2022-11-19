@@ -288,6 +288,10 @@ class UrdfEnv(gym.Env):
             goal.update_bullet_position(p, t=self.t())
         p.stepSimulation(self._cid)
         ob = self._get_ob()
+        err  = self.wrongObs()
+        # print(err)
+        if not err:
+            self._done=True
         rewards = [-0.1, -0.1] # running reward -0.1
         robot_positions = np.zeros((len(self._robots), 3))
         for i, key in enumerate(ob.keys()):
@@ -297,7 +301,7 @@ class UrdfEnv(gym.Env):
         goal_position = goal.position() if len(self._goals) > 0 else np.zeros(3)
 
         #check if goal is reached
-        if np.linalg.norm(robot_centroid - goal_position) < 0.5:
+        if np.linalg.norm(robot_centroid - goal_position) < 0.2:
             rewards = [400.0, 400.0]
             self._done = True
             info['goal_reached'] = True
@@ -314,7 +318,7 @@ class UrdfEnv(gym.Env):
         # p.getNumBodies()
         # p.getBodyInfo()
         #collision between robot and wall
-        for i in range(4,p.getNumBodies()):
+        for i in range(4, p.getNumBodies()):
             if p.getClosestPoints(0, i, 0.1):
                 rewards[0] = -100.0
                 self._done = True
@@ -327,6 +331,12 @@ class UrdfEnv(gym.Env):
             self.render()
 
         return ob, rewards, self._done, info
+    def wrongObs(self):
+        observation = {}
+        for i, robot in enumerate(self._robots):
+            obs = robot.get_observation()
+            if not self.observation_space[f'robot_{i}'].contains(observation):
+                return True
 
     def get_observation(self):
         return self._get_ob()
@@ -566,7 +576,7 @@ class UrdfEnv(gym.Env):
         self.plane = Plane()
         p.setGravity(0, 0, -10.0)
         p.stepSimulation()
-        p.resetDebugVisualizerCamera(cameraDistance=5, cameraYaw=-35, cameraPitch=50, cameraTargetPosition=[1, 1, 1])
+        p.resetDebugVisualizerCamera(cameraDistance=10, cameraYaw=-15, cameraPitch=-50, cameraTargetPosition=[1, 1, 10])
         return self._get_ob()
 
     def render(self) -> None:
