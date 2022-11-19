@@ -9,6 +9,16 @@ from MotionPlanningGoal.staticSubGoal import StaticSubGoal
 from urdfenvs.sensors.lidar import Lidar
 
 
+def dist_goal_robots(ob):
+    goal_position = np.array([8., 0.0, 0.])
+    robot_positions = np.zeros((2, 3))
+    for i, key in enumerate(ob.keys()):
+        # get robot position
+        robot_positions[i, :] = ob[key]['joint_state']['position']
+    robot_centroid = robot_positions.mean(axis=0)
+    return np.linalg.norm(robot_centroid - goal_position), np.linalg.norm(robot_positions[0, :] - robot_positions[1, :])
+
+
 lidar = Lidar(4, nb_rays=4, raw_data=False)
 urdf_obstacle_dict = {
     "type": "urdf",
@@ -60,8 +70,8 @@ def make_env(render=False):
     # Choosing arbitrary actions
     base_pos = np.array(
         [
-            [0.0, 1.0, 0.0],
-            [0.0, -1.0, 0.0],
+            [0.0, 0.5, 0.0],
+            [0.0, -0.5, 0.0],
         ]
     )
     env.reset(base_pos=base_pos)
@@ -82,10 +92,11 @@ def run_multi_robot_carry(n_steps=1000, render=False):
 
     for _ in range(n_steps):
         i += 1
-        print("i ,", i)
+        # print("i ,", i)
         if done==True:
             kill_env(env)
             env, ob = make_env(render=render)
+            r1, r2 = dist_goal_robots(ob)
             print(ob)
             done = False
         else:
@@ -93,6 +104,9 @@ def run_multi_robot_carry(n_steps=1000, render=False):
             # You will have to do this yourself.
             ob, reward, done, info = env.step(action)
             print(done)
+            r1, r2 = dist_goal_robots(ob)
+            if info["goal_reached"]==True:
+                print("Goal reached")
         # if done:
         #     break
         history.append(ob)

@@ -222,6 +222,7 @@ class UrdfEnv2(gym.Env):
         self._flatten_observation: bool = flatten_observation
         self._space_set = False
         self.n_ = len(robots)
+        self.steps = 0
         if self._render:
             self._cid = p.connect(p.GUI)
             p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
@@ -272,6 +273,7 @@ class UrdfEnv2(gym.Env):
 
     def step(self, actions):
         self._t += self.dt()
+        self.steps += 1
         # Feed action to the robot and get observation of robot's state
         info = {}
         info['goal_reached'] = False
@@ -299,9 +301,17 @@ class UrdfEnv2(gym.Env):
             robot_positions[i,:] = ob[key]['joint_state']['position']
         robot_centroid = robot_positions.mean(axis=0)
         goal_position = goal.position() if len(self._goals) > 0 else np.zeros(3)
+        #keep the robot positions in the box [8,0,0]
+        # if np.any(robot_positions > 8) and np.linalg.norm(robot_centroid - goal_position)>3:
+        #     self._done = True
+        #     rewards = [-100, -100]
+
+        #if steps > 5000 ,terminate
+        if self.steps > 5000:
+            self._done = True
 
         #check if goal is reached
-        if np.linalg.norm(robot_centroid - goal_position) < 0.2:
+        if np.linalg.norm(robot_centroid - goal_position) <= 0.5:
             rewards = [400.0, 400.0]
             self._done = True
             info['goal_reached'] = True
@@ -425,7 +435,7 @@ class UrdfEnv2(gym.Env):
         #         [-0.1, -4, 0.5 * np.pi],
         #     ]
         #walls with a gap in the middle
-        poses_2d =[[-4.0, 0.1, 0.0], [4.0, 5.0, 0.0], [4.0, -4.5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
+        poses_2d =[[-4.0, 0.1, 0.0], [4.0, 5.0, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
         self.add_shapes(
             shape_type="GEOM_BOX", dim=dim, mass=0, poses_2d=poses_2d
         )
@@ -560,6 +570,7 @@ class UrdfEnv2(gym.Env):
         vel: np.ndarray: Initial joint velocities of the robot
         """
         self._t = 0.0
+        self.steps = 0
         p.setPhysicsEngineParameter(
             fixedTimeStep=self._dt, numSubSteps=self._num_sub_steps
         )
@@ -572,7 +583,7 @@ class UrdfEnv2(gym.Env):
 
         for i, robot in enumerate(self._robots):
             pos, vel = robot.check_state(pos, vel)
-            robot.reset(pos=pos, vel=vel, base_pos=base_pos[i])
+            robot.reset(pos=base_pos[i], vel=vel, base_pos=base_pos[i])
         if not self._space_set:
             self.set_spaces()
             self._space_set = True

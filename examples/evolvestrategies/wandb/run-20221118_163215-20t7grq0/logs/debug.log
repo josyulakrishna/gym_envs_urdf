@@ -21,3 +21,5 @@ config: {}
 2022-11-18 16:32:22,089 INFO    MainThread:35550 [wandb_run.py:_redirect():1689] Redirecting console.
 2022-11-18 16:32:22,091 INFO    MainThread:35550 [wandb_run.py:_redirect():1745] Redirects installed.
 2022-11-18 16:32:22,092 INFO    MainThread:35550 [wandb_init.py:init():633] run started, returning control to user process
+2022-11-18 16:39:02,406 INFO    MainThread:35550 [wandb_run.py:_atexit_cleanup():1780] got exitcode: 0
+2022-11-18 16:39:02,407 INFO    MainThread:35550 [wandb_run.py:_restore():1752] restore

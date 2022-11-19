@@ -1,8 +1,8 @@
 import tqdm as tqdm
 from torch.multiprocessing import Pool
 from torch.optim import Adam
-
-from evostrat import compute_centered_ranks, NormalPopulation
+from evostrat import compute_centered_ranks, MultivariateNormalPopulation
+from evostrat import NormalPopulation
 from MRCarry import MRCarry
 import wandb
 import pickle
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     [1] - Salimans, Tim, et al. "Evolution strategies as a scalable alternative to reinforcement learning." arXiv preprint arXiv:1703.03864 (2017).    
     """
     param_shapes = {k: v.shape for k, v in MRCarry().get_params().items()}
-    population = NormalPopulation(param_shapes, MRCarry.from_params, std=0.1, mirror_sampling=False)
+    population = MultivariateNormalPopulation(param_shapes, MRCarry.from_params, device="cuda:0" )
 
     learning_rate = 0.1
     iterations = 1000
