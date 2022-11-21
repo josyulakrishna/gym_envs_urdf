@@ -5,11 +5,11 @@ import torch
 import numpy as np
 from estorch import NSRA_ES
 from estorch import ES
-from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import ipdb
 import logging
 import wandb
 wandb.init(project="nsra", entity="josyula")
+from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 
 def flatten_observation(observation_dictonary: dict) -> np.ndarray:
     observation_list = []

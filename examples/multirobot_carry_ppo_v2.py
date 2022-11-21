@@ -23,12 +23,12 @@ def make_env(render=False):
         GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
         GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
     ]
-    env = gym.make("urdf-env-v0", dt=0.1, robots=robots, render=render)
+    env = gym.make("urdf-env-v1", dt=0.1, robots=robots, render=render)
     # Choosing arbitrary actions
     base_pos = np.array(
         [
-            [0.0, 1.0, 0.0],
-            [0.0, -1.0, 0.0],
+            [0.0, 0.75, 0.0],
+            [0.0, -0.75, 0.0],
         ]
     )
     env.reset(base_pos=base_pos)
@@ -95,7 +95,7 @@ def train(render=False):
 
     random_seed = 42        # set random seed if required (0 = no random seed)
     #####################################################
-    wandb.init(project="ppo_central_multirobot_carry",
+    wandb.init(project="ppo_central_multirobot_v1_carry",
     config=
         {
             "env_name": env_name,
@@ -241,7 +241,7 @@ def train(render=False):
             action = ppo_agent.select_action(state)
             actions = np.clip(np.hstack((action.reshape(2,2), np.zeros((2,1)))).ravel(), -0.5, 0.5 )
             action_new = alpha * actions + (1 - alpha) * action_prev
-            state, reward, done, _ = env.step(actions)
+            state, reward, done, _ = env.step(action_new)
 
             state = flatten_observation(state)
 
