@@ -27,7 +27,7 @@ def main():
     parser.add_argument(
         "--generation-num",
         type=int,
-        default=1,
+        default=10,
         help="max number of generation iteration.",
     )
     parser.add_argument(
@@ -36,7 +36,7 @@ def main():
         default=1,
         help="number of model evaluaion per iteration.",
     )
-    parser.add_argument("--log", action="store_true", help="wandb log")
+    parser.add_argument("--log", default=True, action="store_true", help="wandb log")
     parser.add_argument(
         "--save-model-period",
         type=int,

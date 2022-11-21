@@ -583,7 +583,7 @@ class UrdfEnv2(gym.Env):
 
         for i, robot in enumerate(self._robots):
             pos, vel = robot.check_state(pos, vel)
-            robot.reset(pos=base_pos[i], vel=vel, base_pos=base_pos[i])
+            robot.reset(pos=pos, vel=vel, base_pos=base_pos[i])
         if not self._space_set:
             self.set_spaces()
             self._space_set = True

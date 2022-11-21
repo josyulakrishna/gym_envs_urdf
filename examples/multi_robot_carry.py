@@ -63,24 +63,26 @@ def create_obstacle():
 
 def make_env(render=False):
     robots = [
-        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
-        GenericUrdfReacher(urdf="loadPointRobot.urdf", mode="vel"),
+        GenericUrdfReacher(urdf="/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/loadPointRobot.urdf", mode="vel"),
+        GenericUrdfReacher(urdf="/home/josyula/Programs/MAS_Project/gym_envs_urdf/examples/loadPointRobot.urdf", mode="vel"),
     ]
     env = gym.make("urdf-env-v1", dt=0.1, robots=robots, render=render)
     # Choosing arbitrary actions
     base_pos = np.array(
         [
-            [0.0, 0.5, 0.0],
-            [0.0, -0.5, 0.0],
+            [0.0, 0.75, 0.0],
+            [0.0, -0.75, 0.0],
         ]
     )
     env.reset(base_pos=base_pos)
     env.add_stuff()
     ob = env.get_observation()
     return env, ob
+
 def kill_env(env):
     env.close()
     del env
+
 def run_multi_robot_carry(n_steps=1000, render=False):
     # Two robots to carry the load
 
@@ -88,8 +90,9 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     i = 0
     done = False
     env, ob = make_env(render=render)
-    action = [0.1, 0.0, 0.0, 0.1, 0.0, 0.0]
-
+    # action = [0.1, 0.0, 0.0, 0.1, 0.0, 0.0]
+    # action = [0.01967737, 0.14547452, 0., -0.01090256, -0.18248633, 0.]
+    action = [-0.13163272,  0.02828632,  0., -0.03071381,  0.06311578, 0]
     for _ in range(n_steps):
         i += 1
         # print("i ,", i)

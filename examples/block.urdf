@@ -2,9 +2,9 @@
 <robot name="block_2">
   <link name="block_2_base_link">
     <contact>
-      <lateral_friction value="2.0"/>
-      <rolling_friction value="0.5"/>
-      <contact_cfm value="0.0"/>
+      <lateral_friction value="20.0"/>
+      <rolling_friction value="1.0"/>
+      <contact_cfm value="1.0"/>
       <contact_erp value="1.0"/>
     </contact>
     <inertial>

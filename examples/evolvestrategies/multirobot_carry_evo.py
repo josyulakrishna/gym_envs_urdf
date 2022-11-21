@@ -16,7 +16,7 @@ if __name__ == '__main__':
     [1] - Salimans, Tim, et al. "Evolution strategies as a scalable alternative to reinforcement learning." arXiv preprint arXiv:1703.03864 (2017).    
     """
     param_shapes = {k: v.shape for k, v in MRCarry().get_params().items()}
-    population = MultivariateNormalPopulation(param_shapes, MRCarry.from_params, device="cuda:0" )
+    population = NormalPopulation(param_shapes, MRCarry.from_params, device="cuda:0", std=0.01)
 
     learning_rate = 0.1
     iterations = 1000

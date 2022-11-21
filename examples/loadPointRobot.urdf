@@ -29,7 +29,42 @@
       </inertial>
     </link>
 
-
+<link name="holder_left_top">
+      <inertial>
+      <mass value="0.1"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      </inertial>
+    <visual>
+      <geometry>
+        <box size="0.1 0.7 0.3"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.7 0.3"/>
+      </geometry>
+    </collision>
+</link>
+  <link name="holder_right_top">
+      <inertial>
+      <mass value="0.1"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      </inertial>
+    <visual>
+      <geometry>
+        <box size="0.1 0.7 0.3"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.7 0.3"/>
+      </geometry>
+    </collision>
+</link>
   <link name="holder_right">
       <inertial>
       <mass value="0.1"/>
@@ -105,7 +140,17 @@
       </geometry>
     </visual>
   </link>
-   <joint name="base_to_holder" type="fixed">
+  <joint name="planckt_to_holder_left_top" type="fixed">
+    <parent link="big_planck"/>
+    <child link="holder_left_top"/>
+    <origin rpy="0 0 0" xyz="-0.23 0.0 0.15"/>
+</joint>
+    <joint name="planckt_to_holder_right_top" type="fixed">
+    <parent link="big_planck"/>
+    <child link="holder_right_top"/>
+    <origin rpy="0 0 0" xyz="0.23 0.0 0.15"/>
+</joint>
+ <joint name="base_to_holder" type="fixed">
      <parent link="base_link_1"/>
       <child link="holder_right"/>
       <origin xyz="0 -0.10 0.10"/>
