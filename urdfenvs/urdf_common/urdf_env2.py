@@ -277,7 +277,9 @@ class UrdfEnv2(gym.Env):
         # Feed action to the robot and get observation of robot's state
         info = {}
         info['goal_reached'] = False
+        info['wall_pass'] = False
         action_id = 0
+
         for robot in self._robots:
             action = actions[action_id:action_id+robot.n()]
             robot.apply_action(action, self.dt())
@@ -294,13 +296,38 @@ class UrdfEnv2(gym.Env):
         # print(err)
         if not err:
             self._done=True
-        rewards = [-0.1, -0.1] # running reward -0.1
+
         robot_positions = np.zeros((len(self._robots), 3))
         for i, key in enumerate(ob.keys()):
             #get robot position
             robot_positions[i,:] = ob[key]['joint_state']['position']
         robot_centroid = robot_positions.mean(axis=0)
         goal_position = goal.position() if len(self._goals) > 0 else np.zeros(3)
+
+        #rewards for perpendicular distance
+        #line between origin and goal
+        p1 = np.array([0,0])
+        p2 = goal_position[:2]
+
+        p3 = robot_positions[0,:2]
+        p4 = robot_positions[1,:2]
+        #perpendicular distance
+        d1 = np.abs(np.linalg.norm(np.cross(p2-p1,p1-p3))/np.linalg.norm(p2-p1))
+        d2 = np.abs(np.linalg.norm(np.cross(p2-p1,p1-p4))/np.linalg.norm(p2-p1))
+
+         #perpendicular distance
+        rewards = [-0.1, -0.1] # running reward -0.1
+        #check if velocity is towards goal
+        # v1 = actions[0:2]
+        # v2 = actions[3:5]
+        # vg = goal_position[:2]
+        # if np.dot(v1, vg)>0 and np.dot(v2, vg)>0:
+        #     # rewards = [-(d1+d2)+30, -(d1+d2)+30]
+        #     rewards = [30, 30]
+        #
+        # else:
+        #     rewards = [-0.1, -0.1]
+
         #keep the robot positions in the box [8,0,0]
         # if np.any(robot_positions > 8) and np.linalg.norm(robot_centroid - goal_position)>3:
         #     self._done = True
@@ -309,6 +336,17 @@ class UrdfEnv2(gym.Env):
         #if steps > 5000 ,terminate
         if self.steps > 5000:
             self._done = True
+
+        Ax = 4
+        Bx = 4
+        Ay = 5
+        By = -5
+        X= robot_centroid[0]
+        Y= robot_centroid[1]
+
+        if ((Bx - Ax) * (Y - Ay) - (By - Ay) * (X - Ax)) > 0:
+            rewards = [100, 100]
+            info['wall_pass'] = True
 
         #check if goal is reached
         if np.linalg.norm(robot_centroid - goal_position) <= 0.5:
@@ -435,7 +473,9 @@ class UrdfEnv2(gym.Env):
         #         [-0.1, -4, 0.5 * np.pi],
         #     ]
         #walls with a gap in the middle
-        poses_2d =[[-4.0, 0.1, 0.0], [4.0, 5.0, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
+        # poses_2d =[[-4.0, 0.1, 0.0], [4.0, 5.0, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
+        poses_2d =[[-4.0, 0.1, 0.0], [4.0, 4.5, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
+
         self.add_shapes(
             shape_type="GEOM_BOX", dim=dim, mass=0, poses_2d=poses_2d
         )

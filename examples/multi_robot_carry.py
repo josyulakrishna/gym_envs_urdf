@@ -7,6 +7,20 @@ from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 from MotionPlanningEnv.urdfObstacle import UrdfObstacle
 from MotionPlanningGoal.staticSubGoal import StaticSubGoal
 from urdfenvs.sensors.lidar import Lidar
+import matplotlib.pyplot as plt
+
+plt.ion()
+def get_bc_features(ob):
+    goal_position = np.array([8., 0.0, 0.])
+    robot_positions = np.zeros((2, 3))
+    for i, key in enumerate(ob.keys()):
+        #get robot position
+        robot_positions[i,:] = ob[key]['joint_state']['position']
+    robot_centroid = robot_positions.mean(axis=0)
+    slope_goal = (goal_position[1] - robot_centroid[1])/(goal_position[0] - robot_centroid[0])
+    slope_robots = (robot_positions[1][1] - robot_positions[0][1])/((robot_positions[1][0] - robot_positions[0][0])+0.001)
+    return np.linalg.norm(robot_centroid - goal_position), np.linalg.norm(robot_positions[0,:] - robot_positions[1,:] ), slope_goal, slope_robots
+
 
 
 def dist_goal_robots(ob):
@@ -89,10 +103,12 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     history = []
     i = 0
     done = False
+    robot_positions = np.zeros((2, 2))
     env, ob = make_env(render=render)
     # action = [0.1, 0.0, 0.0, 0.1, 0.0, 0.0]
     # action = [0.01967737, 0.14547452, 0., -0.01090256, -0.18248633, 0.]
     action = [-0.13163272,  0.02828632,  0., -0.03071381,  0.06311578, 0]
+    goal_pos = np.array([8., 0.0])
     for _ in range(n_steps):
         i += 1
         # print("i ,", i)
@@ -107,8 +123,18 @@ def run_multi_robot_carry(n_steps=1000, render=False):
             # You will have to do this yourself.
             ob, reward, done, info = env.step(action)
             print(done)
-            r1, r2 = dist_goal_robots(ob)
+            dist2goal, distbrobots, slopegoal, sloperobots = get_bc_features(ob)
+            for i, key in enumerate(ob.keys()):
+                # get robot position
+                robot_positions[i, :] = ob[key]['joint_state']['position'][:2]
+            area_tri = abs(np.cross(robot_positions[0, :] - robot_positions[1, :], goal_pos - robot_positions[0, :]))
+            area_tri = np.linalg.norm(area_tri) / 2
+            # r1, r2 = dist_goal_robots(ob)
+
+            plt.plot( i, area_tri, 'r+')
+            plt.plot(i, dist2goal, 'b+')
             if info["goal_reached"]==True:
+
                 print("Goal reached")
         # if done:
         #     break

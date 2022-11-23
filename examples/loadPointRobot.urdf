@@ -14,7 +14,7 @@
 
     <visual>
       <geometry>
-        <box size="0.8 0.8 0.05"/>
+        <box size="0.7 0.7 0.05"/>
       </geometry>
       <material name="green"/>
     </visual>
@@ -130,13 +130,13 @@
     <collision>
       <origin rpy="0.0 0 0" xyz="0 0 0"/>
       <geometry>
-          <cylinder length="0.1" radius="0.2"/>
+          <cylinder length="0.1" radius="0.3"/>
       </geometry>
     </collision>
     <visual>
       <origin rpy="0.0 0 0" xyz="0 0 0"/>
       <geometry>
-          <cylinder length="0.1" radius="0.2"/>
+          <cylinder length="0.1" radius="0.3"/>
       </geometry>
     </visual>
   </link>

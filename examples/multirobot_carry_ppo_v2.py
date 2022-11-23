@@ -95,7 +95,7 @@ def train(render=False):
 
     random_seed = 42        # set random seed if required (0 = no random seed)
     #####################################################
-    wandb.init(project="ppo_central_multirobot_v1_carry",
+    wandb.init(project="ppo_central_multirobot_v2_carry_local",
     config=
         {
             "env_name": env_name,
@@ -230,7 +230,7 @@ def train(render=False):
     # training loop
     while time_step <= max_training_timesteps:
         kill_env(env)
-        env, state = make_env(render=False)
+        env, state = make_env(render=True)
 
         state = flatten_observation(state)
         current_ep_reward = 0

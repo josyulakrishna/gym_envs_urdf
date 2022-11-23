@@ -59,8 +59,8 @@ env, obs = make_env(render=False)
 kill_env(env)
 s_dim = 28 #env.observation_space.shape[0]
 action_dim = 4
-a_max = 0.5 #env.action_space.high[0]
-a_min = -0.5 #env.action_space.low[0]
+a_max = -0.5 #env.action_space.high[0]
+a_min = 0.5 #env.action_space.low[0]
 tau = 0.001
 max_episodes = 50000
 batch_size = 128
@@ -128,23 +128,27 @@ class Critic(nn.Module):
         :return:
         """
         super(Critic, self).__init__()
-
-        self.state_dim = state_dim
-        self.action_dim = action_dim
-
-        self.fcs1 = nn.Linear(state_dim, 200)
-        # self.fcs1.weight.data = fanin_init(self.fcs1.weight.data.size())
-        # self.fcs2 = nn.Linear(256,128)
-        # self.fcs2.weight.data = fanin_init(self.fcs2.weight.data.size())
-        self.bn1 = nn.BatchNorm1d(200)
-        self.fca1 = nn.Linear(action_dim, 200)
-        # self.fca1.weight.data = fanin_init(self.fca1.weight.data.size())
-        self.bn2 = nn.BatchNorm1d(200)
-        self.fc2 = nn.Linear(400, 300)
-        # self.fc2.weight.data = fanin_init(self.fc2.weight.data.size())
-        self.bn3 = nn.BatchNorm1d(300)
-        self.fc3 = nn.Linear(300, 1)
+        #
+        # self.state_dim = state_dim
+        # self.action_dim = action_dim
+        #
+        # self.fcs1 = nn.Linear(state_dim, 200)
+        # # self.fcs1.weight.data = fanin_init(self.fcs1.weight.data.size())
+        # # self.fcs2 = nn.Linear(256,128)
+        # # self.fcs2.weight.data = fanin_init(self.fcs2.weight.data.size())
+        # self.bn1 = nn.BatchNorm1d(200)
+        # self.fca1 = nn.Linear(action_dim, 200)
+        # # self.fca1.weight.data = fanin_init(self.fca1.weight.data.size())
+        # self.bn2 = nn.BatchNorm1d(200)
+        # self.fc2 = nn.Linear(400, 300)
+        # # self.fc2.weight.data = fanin_init(self.fc2.weight.data.size())
+        # self.bn3 = nn.BatchNorm1d(300)
+        # self.fc3 = nn.Linear(300, 1)
         # self.fc3.weight.data.uniform_(-EPS,EPS)
+
+        self.fc1 = nn.Linear(state_dim, 256)
+        self.fc2 = nn.Linear(256, 128)
+        self.fc3 = nn.Linear(128, 1)
 
     def forward(self, state, action):
         """
@@ -153,17 +157,21 @@ class Critic(nn.Module):
         :param action: Input Action (Torch Variable : [n,action_dim] )
         :return: Value function : Q(S,a) (Torch Variable : [n,1] )
         """
-        s1 = self.fcs1(state)
-        # s1 = self.bn1(s1)
-        s1 = F.relu(s1)
-        # s2 = F.relu(self.fcs2(s1))
-        a1 = self.fca1(action)
-        # a1 = self.bn2(a1)
-        a1 = F.relu(a1)
-        x = torch.cat((s1, a1), dim=1)
-        x = self.fc2(x)
-        # x = self.bn3(x)
-        x = F.relu(x)
+        # s1 = self.fcs1(state)
+        # # s1 = self.bn1(s1)
+        # s1 = F.relu(s1)
+        # # s2 = F.relu(self.fcs2(s1))
+        # a1 = self.fca1(action)
+        # # a1 = self.bn2(a1)
+        # a1 = F.relu(a1)
+        # x = torch.cat((s1, a1), dim=1)
+        # x = self.fc2(x)
+        # # x = self.bn3(x)
+        # x = F.relu(x)
+        # x = self.fc3(x)
+
+        x = F.relu(self.fc1(state))
+        x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -183,17 +191,22 @@ class Actor(nn.Module):
         self.action_dim = action_dim
         self.action_lim = torch.Tensor([action_lim])
         self.fitness = 0
+        # self.fc1 = nn.Linear(state_dim, 256)
+        # # self.fc1.weight.data = fanin_init(self.fc1.weight.data.size())
+        # self.bn1 = nn.BatchNorm1d(1)
+        # self.fc2 = nn.Linear(256, 128)
+        # # self.fc2.weight.data = fanin_init(self.fc2.weight.data.size())
+        # self.bn2 = nn.BatchNorm1d(1)
+        # self.fc3 = nn.Linear(128, 64)
+        # # self.fc3.weight.data = fanin_init(self.fc3.weight.data.size())
+        # self.bn3 = nn.BatchNorm1d(1)
+        # self.fc4 = nn.Linear(64, action_dim)
+        # # self.fc4.weight.data.uniform_(-EPS,EPS)
         self.fc1 = nn.Linear(state_dim, 256)
-        # self.fc1.weight.data = fanin_init(self.fc1.weight.data.size())
-        self.bn1 = nn.BatchNorm1d(1)
         self.fc2 = nn.Linear(256, 128)
-        # self.fc2.weight.data = fanin_init(self.fc2.weight.data.size())
-        self.bn2 = nn.BatchNorm1d(1)
         self.fc3 = nn.Linear(128, 64)
-        # self.fc3.weight.data = fanin_init(self.fc3.weight.data.size())
-        self.bn3 = nn.BatchNorm1d(1)
         self.fc4 = nn.Linear(64, action_dim)
-        # self.fc4.weight.data.uniform_(-EPS,EPS)
+
 
     def forward(self, state):
         """
@@ -204,18 +217,22 @@ class Actor(nn.Module):
         :param state: Input state (Torch Variable : [n,state_dim] )
         :return: Output action (Torch Variable: [n,action_dim] )
         """
-        x = self.fc1(state)
-        # x = self.bn1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        # x = self.bn2(x)
-        x = F.relu(x)
-        x = self.fc3(x)
-        # x = self.bn3(x)
+        # x = self.fc1(state)
+        # # x = self.bn1(x)
         # x = F.relu(x)
+        # x = self.fc2(x)
+        # # x = self.bn2(x)
+        # x = F.relu(x)
+        # x = self.fc3(x)
+        # # x = self.bn3(x)
+        # x = F.relu(x)
+        # action = F.tanh(self.fc4(x))
+
+        x = F.relu(self.fc1(state))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
         action = self.fc4(x)
-        #removed tanh
-        # action = action * self.action_lim
+        action = action * self.action_lim
 
         return action
 
@@ -467,7 +484,8 @@ class ERL:
                 if np.any(np.isnan(flatten_observation(new_obs))) or np.any(np.isnan(flatten_observation(obs))):
                     done = True
                 else:
-                    self.ddpg.add_to_buffer([flatten_observation(obs), action, [fitness], flatten_observation(new_obs)])
+                    # self.ddpg.add_to_buffer([flatten_observation(obs), action, [fitness], flatten_observation(new_obs)])
+
                     obs = new_obs
                 if total_steps > 3000:
                     done = True
@@ -492,6 +510,7 @@ class ERL:
             winners.append(best)
             for i in range(len(winners)):
                 hard_update(self.tornament_winners[i], self.indivisual[winners[i]])
+        return winners
 
     def mutation(self, actor):
         for target_param in actor.parameters():
