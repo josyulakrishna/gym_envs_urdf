@@ -191,7 +191,7 @@ def filter_shape_dim(
     return dim
 
 
-class UrdfEnv2(gym.Env):
+class UrdfVecEnv(gym.Env):
     """Generic urdf-environment for OpenAI-Gym"""
 
     def __init__(
@@ -473,8 +473,8 @@ class UrdfEnv2(gym.Env):
         #         [-0.1, -4, 0.5 * np.pi],
         #     ]
         #walls with a gap in the middle
-        poses_2d =[[-4.0, 0.1, 0.0], [4.0, 5.0, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
-        # poses_2d =[[-4.0, 0.1, 0.0], [4.0, 4.5, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
+        # poses_2d =[[-4.0, 0.1, 0.0], [4.0, 5.0, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
+        poses_2d =[[-4.0, 0.1, 0.0], [4.0, 4.5, 0.0], [4.0, -5, 0.0], [0.1, 4.0, 0.5 * np.pi], [-0.1, -4.0, 0.5 * np.pi]]
 
         self.add_shapes(
             shape_type="GEOM_BOX", dim=dim, mass=0, poses_2d=poses_2d

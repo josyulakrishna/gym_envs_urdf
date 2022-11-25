@@ -104,7 +104,8 @@ def run_multi_robot_carry(n_steps=1000, render=False):
     i = 0
     done = False
     robot_positions = np.zeros((2, 2))
-    env, ob = make_env(render=render)
+    # env, ob = make_env(render=render)
+    envs = gym.vector.make("urdf-env-v1", num_envs=3)
     # action = [0.1, 0.0, 0.0, 0.1, 0.0, 0.0]
     # action = [0.01967737, 0.14547452, 0., -0.01090256, -0.18248633, 0.]
     action = [-0.13163272,  0.02828632,  0.0, -0.03071381,  0.06311578, 0.0]
