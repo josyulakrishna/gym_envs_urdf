@@ -13,6 +13,7 @@ class VBNChromosome:
         self.number_actions = number_actions
         self.observation_space = 14
         model = self.construct_layers()
+        model.apply(self.weights_init_uniform_rule)
         self.model = model
 
     def construct_layers(self):
@@ -26,6 +27,17 @@ class VBNChromosome:
         )
 
         return model
+
+    # takes in a module and applies the specified weight initialization
+    def weights_init_uniform_rule(self, m):
+        classname = m.__class__.__name__
+        # for every Linear layer in a model..
+        if classname.find('Linear') != -1:
+            # get the number of the inputs
+            n = m.in_features
+            y = 1.0/np.sqrt(n)
+            m.weight.data.uniform_(-y, y)
+            m.bias.data.fill_(0)
 
     def virtual_batch_norm(self, samples):
         """ We apply Batch Normalization on a number of samples. By setting the learning
@@ -51,7 +63,7 @@ class VBNChromosome:
         for key in weights.keys():
             noise = np.random.normal(loc=0.0, scale=mutation_power, size=weights[key].shape)
             weights[key] = weights[key] + noise
-        self.model.load_state_dict(weights)
+        return weights
 
     def determine_actions(self, inputs):
         """ Choose an action based on the pixel inputs. We do this by simply

@@ -10,5 +10,5 @@ with open('configs/config_ga_test.yaml') as f:
 
 trainer = GATrainer(config)
 
-while trainer.timesteps() < config['stop_criteria']['timesteps_total']:
-    trainer.step()
+while trainer.generation < config['stop_criteria']['generations']:
+    print(trainer.step())

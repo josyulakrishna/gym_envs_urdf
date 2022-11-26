@@ -75,8 +75,8 @@ class EATrainer():
         evaluate_results = [self.worker_class.evaluate_mutations(best_mutation_weights, None, mutate_oponent=False) for i in range(20)]
         return evaluate_results
 
-    def increment_metrics(self, results):
+    def increment_metrics(self):
         """ Increment the total timesteps, episodes and generations. """
-        self.timesteps_total += sum([result['timesteps_total'] for result in results])
-        self.episodes_total += len(results)
+        # self.timesteps_total += sum([result['timesteps_total'] for result in results])
+        # self.episodes_total += len(results)
         self.generation += 1

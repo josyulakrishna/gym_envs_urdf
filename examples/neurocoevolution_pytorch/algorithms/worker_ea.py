@@ -41,6 +41,9 @@ class EAWorker:
         reward2 = 0
         limit = self.config['max_evaluation_steps'] if eval else self.config[
             'max_timesteps_per_episode']
+        step = 0
+        wall_pass = 0
+        goal_reach = 0
         for ts in range(limit):
             filtered_obs1 = flatten_observation(obs[PLAYER_1_ID])
             filtered_obs2 = flatten_observation(obs[PLAYER_2_ID])
@@ -53,8 +56,13 @@ class EAWorker:
             obs, reward, done, info = env.step(actions)
             reward1 += reward[0]
             reward2 += reward[1]
-            if done:
+            step+= 1
+            if info["wall_pass"]:
+                wall_pass += 1
+            if info["goal_reached"]:
+                goal_reach += 1
+            if done or step >= limit:
                 break
         kill_env(env)
-        return reward1, reward2, ts
+        return reward1, reward2, ts, wall_pass, goal_reach
 
