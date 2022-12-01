@@ -3,13 +3,13 @@ from random import random
 import torch.nn as nn
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-
-
+import torch
+# torch.manual_seed(1836)
 class VBNChromosome:
     """ Class that wraps the neural network. Includes functionality
     for Virtual Batch Normalization and the mutation of weights."""
 
-    def __init__(self, number_actions=2):
+    def __init__(self, number_actions=3):
         self.number_actions = number_actions
         self.observation_space = 14
         model = self.construct_layers()
@@ -22,8 +22,8 @@ class VBNChromosome:
             nn.ReLU(),
          nn.Linear(64, 64),
             nn.ReLU(),
-         nn.Linear(64, 2),
-            nn.Tanh()
+         nn.Linear(64, 3),
+            # nn.Tanh()
         )
 
         return model
@@ -55,6 +55,9 @@ class VBNChromosome:
         """ Set all the weights of the network. """
         self.model.load_state_dict(new_weights)
 
+    def mutate_weights(self):
+        weights = self.mutate(1)
+        self.model.load_state_dict(weights)
 
     def mutate(self, mutation_power):
         """ Mutate the current weights by adding a normally distributed vector of

@@ -60,14 +60,22 @@ LinregressResult(slope=0.20833333333333337, intercept=13.375, rvalue=0.144998154
     """
 
     def __init__(self):
-        self.net = nn.Sequential(
-                nn.Linear(28, 64),
-                nn.ReLU(),
-                nn.Linear(64, 4),
-                # nn.ReLU(),
-                # nn.Linear(64, 4),
-                nn.Tanh()
-            )
+        # self.net = nn.Sequential(
+        #         nn.Linear(28, 64),
+        #         nn.ReLU(),
+        #         nn.Linear(64, 6),
+        #         # nn.ReLU(),
+        #         # nn.Linear(64, 4),
+        #         nn.Tanh()
+        #     )
+        self.actor1 = nn.Sequential(
+            nn.Linear(28, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, 6),
+            # nn.Tanh()
+        )
     @staticmethod
     def from_params(params: Dict[str, t.Tensor]) -> 'MRCarry':
         agent = MRCarry()

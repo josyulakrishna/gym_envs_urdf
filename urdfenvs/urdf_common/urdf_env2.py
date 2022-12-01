@@ -304,16 +304,16 @@ class UrdfEnv2(gym.Env):
         robot_centroid = robot_positions.mean(axis=0)
         goal_position = goal.position() if len(self._goals) > 0 else np.zeros(3)
 
-        #rewards for perpendicular distance
-        #line between origin and goal
-        p1 = np.array([0,0])
-        p2 = goal_position[:2]
-
-        p3 = robot_positions[0,:2]
-        p4 = robot_positions[1,:2]
-        #perpendicular distance
-        d1 = np.abs(np.linalg.norm(np.cross(p2-p1,p1-p3))/np.linalg.norm(p2-p1))
-        d2 = np.abs(np.linalg.norm(np.cross(p2-p1,p1-p4))/np.linalg.norm(p2-p1))
+        # #rewards for perpendicular distance
+        # #line between origin and goal
+        # p1 = np.array([0,0])
+        # p2 = goal_position[:2]
+        #
+        # p3 = robot_positions[0,:2]
+        # p4 = robot_positions[1,:2]
+        # #perpendicular distance
+        # d1 = np.abs(np.linalg.norm(np.cross(p2-p1,p1-p3))/np.linalg.norm(p2-p1))
+        # d2 = np.abs(np.linalg.norm(np.cross(p2-p1,p1-p4))/np.linalg.norm(p2-p1))
 
          #perpendicular distance
         rewards = [-0.1, -0.1] # running reward -0.1

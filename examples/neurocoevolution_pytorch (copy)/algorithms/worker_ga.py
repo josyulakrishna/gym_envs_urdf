@@ -22,7 +22,7 @@ class GAWorker(EAWorker):
         self.elite = VBNChromosome(number_actions=self.config['number_actions'])
         self.oponent = VBNChromosome(number_actions=self.config['number_actions'])
 
-        self.filter = MeanStdFilter((14,2))
+        self.filter = MeanStdFilter((14,))
 
     def evaluate_mutations(self, elite, oponent, record=False, mutate_oponent=True):
         """ Mutate the inputted weights and evaluate its performance against the

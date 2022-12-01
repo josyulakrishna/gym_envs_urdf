@@ -1,7 +1,3 @@
-import ray
-import wandb
-from gym.wrappers.monitoring.video_recorder import VideoRecorder
-from ray.rllib.utils.filter import MeanStdFilter
 
 from algorithms.worker_ea import EAWorker
 from utils_torch.chromosome import VBNChromosome
@@ -21,18 +17,19 @@ class GAWorker(EAWorker):
 
         self.player1 = VBNChromosome(number_actions=self.config['number_actions'])
         self.player2 = VBNChromosome(number_actions=self.config['number_actions'])
+        self.random_player = VBNChromosome(number_actions=self.config['number_actions'])
 
-        self.filter = MeanStdFilter((14,2))
         self.wall_pass = 0
         self.goal_reach = 0
+        self.mutation_power = self.config['mutation_power']
     #mutate individual get weights
     def mutate_individual(self, individual):
         """ Mutate the inputted weights and evaluate its performance against the
         inputted oponent. """
-        mutation_power = self.config['mutation_power']
+
         weights = individual
         for key in weights.keys():
-            noise = np.random.normal(loc=0.0, scale=mutation_power, size=weights[key].shape)
+            noise = np.random.normal(loc=0.0, scale=self.mutation_power, size=weights[key].shape)
             weights[key] = weights[key] + noise
         return weights
 
@@ -49,23 +46,20 @@ class GAWorker(EAWorker):
             reward2 += reward_2
         return (reward1)/3.
 
-    def evaluate_mutations(self, elite, oponent):
+    def evaluate_hof_diff(self, player1, hofplayer):
         """ Mutate the inputted weights and evaluate its performance against the
         inputted oponent. """
         # recorder = VideoRecorder(self.env, path=self.video_path) if record else None
-        self.elite.set_weights(elite)
-        self.oponent.set_weights(oponent)
+        self.player1.set_weights(player1)
+        self.player2.set_weights(hofplayer)
+        self.random_player.mutate_weights()
 
-        elite_reward1, oponent_reward1, ts1, wall_pass, goal_reach = self.play_game(self.elite, self.oponent)
-        oponent_reward2, elite_reward2, ts2 = self.play_game(self.oponent, self.elite)
-        total_elite = elite_reward1 + elite_reward2
-        total_oponent = oponent_reward1 + oponent_reward2
-        # if record:
-        #     recorder.close()
-        #
-        return {
-            'oponent_weights': self.oponent.get_weights() if self.oponent else None,
-            'score_vs_elite': total_oponent,
-            'timesteps_total': ts1 + ts2,
-            'video': None
-        }
+        elite_reward1, oponent_reward1, ts1, wall_pass, goal_reach = self.play_game(self.player1, self.player2)
+
+        elite_reward2,oponent_reward2, ts2, wall_pass, goal_reach = self.play_game(self.player1, self.random_player)
+        total_elite = elite_reward1 + oponent_reward1
+        total_oponent = elite_reward2 + oponent_reward2
+        if total_elite <0 and  total_oponent<0:
+            return -1*abs(total_elite - total_oponent)
+        else:
+            return total_elite - total_oponent

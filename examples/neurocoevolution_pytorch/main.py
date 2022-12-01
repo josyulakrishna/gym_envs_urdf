@@ -1,14 +1,19 @@
 from pathlib import Path
 
 import yaml
-from ray import tune
-from ray.tune.integration.wandb import WandbLogger
-from algorithms.trainer_ga import GATrainer
+# from algorithms.trainer_ga import GATrainer
+from algorithms.trainer_es import ESTrainer
 config = {}
-with open('configs/config_ga_test.yaml') as f:
-    config = yaml.load(f, Loader=yaml.FullLoader)
+import torch.multiprocessing as mp
 
-trainer = GATrainer(config)
+mp.set_start_method('spawn', force=True)
 
-while trainer.generation < config['stop_criteria']['generations']:
-    print(trainer.step())
+if __name__ == '__main__':
+    with open('configs/config_ga_test.yaml') as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
+    # trainer = GATrainer(config)
+    trainer = ESTrainer(config)
+    while trainer.generation < config['stop_criteria']['generations']:
+        # trainer.step_hof()
+        trainer.step()

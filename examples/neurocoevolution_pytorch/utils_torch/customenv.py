@@ -16,6 +16,18 @@ def flatten_observation(observation_dictonary: dict) -> np.ndarray:
     observation_array = np.array(observation_list)
     return observation_array
 
+def get_bc_features(ob):
+    goal_position = np.array([8., 0.0, 0.])
+    robot_positions = np.zeros((2, 3))
+    for i, key in enumerate(ob.keys()):
+        #get robot position
+        robot_positions[i,:] = ob[key]['joint_state']['position']
+    robot_centroid = robot_positions.mean(axis=0)
+    slope_goal = (goal_position[1] - robot_centroid[1])/(goal_position[0] - robot_centroid[0])
+    slope_robots = (robot_positions[1][1] - robot_positions[0][1])/((robot_positions[1][0] - robot_positions[0][0])+0.001)
+    return np.linalg.norm(robot_centroid - goal_position), np.linalg.norm(robot_positions[0,:] - robot_positions[1,:] ), slope_goal, slope_robots
+
+
 
 def make_env(render=False):
     robots = [

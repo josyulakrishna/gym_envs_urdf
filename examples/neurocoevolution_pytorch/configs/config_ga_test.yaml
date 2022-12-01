@@ -3,7 +3,7 @@ env: pong_v3
 name: pong_ga
 
 # Algorithm settings
-algorithm: ga
+algorithm: es
 mutation_power: 0.05
 population_pool: 3
 population_size: 5

@@ -1,14 +1,10 @@
 import os
 from abc import ABCMeta, abstractmethod
 
-import numpy as np
-import ray
-# from ray.rllib.agents import Trainer, with_common_config
-# from ray.rllib.utils.annotations import override
-from ray.rllib.utils.filter import MeanStdFilter
 from torch.multiprocessing import Pool, Process, set_start_method
 
 from algorithms.worker_ga import GAWorker
+from algorithms.worker_es import ESWorker
 from utils_torch.customenv import *
 import pickle
 
@@ -22,28 +18,12 @@ class EATrainer():
 
     def __init__(self, config):
         self.config = config
-        self.worker_class = GAWorker(config)
+        self.worker_class = GAWorker(config) if config['algorithm'] == 'ga' else ESWorker(config)
         self._workers = Pool(config["num_workers"])
 
         self.episodes_total = 0
         self.timesteps_total = 0
         self.generation = 0
-
-    def collect_samples(self):
-        """ Sample game frames from the environment by letting two random policies
-        play against eachother. """
-        env,obs = make_env()
-        obs_filter = MeanStdFilter(flatten_observation(obs[PLAYER_1_ID]).shape)
-        policy = np.clip(np.random.randn(2 * 2), -0.5, 0.5)
-        policy = np.hstack((policy.reshape(2, 2), np.zeros((2, 1)))).ravel()
-        samples = []
-        for _ in range(500):
-            obs, _, done, _ = env.step(policy)
-            samples += [obs_filter(flatten_observation(obs[PLAYER_1_ID])), obs_filter(flatten_observation(obs[PLAYER_2_ID]))]
-            if done:
-                kill_env(env)
-                env, _ = make_env()
-        return samples
 
     @abstractmethod
     def step(self):
